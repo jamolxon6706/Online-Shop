@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Django
+*.sqlite3
+media/
+Media/
+staticfiles/
+
+# Next.js
+.next/
+node_modules/
+templates/.next/
+templates/node_modules/
+templates/.env.local
+*.tsbuildinfo
+next_dbg.log
+
+# Large / generated files
+templates.zip
+*.zip
+home_err.html
+
+# Logs
+*.log
+
+# Env
+.env
+*.env
+
+# IDE
+.idea/
+.vscode/

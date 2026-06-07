@@ -1,0 +1,313 @@
+[
+  {
+    "model": "apps.category",
+    "pk": 1,
+    "fields": { "title": "Macs", "photo": "categories/img_1.png" }
+  },
+  {
+    "model": "apps.category",
+    "pk": 2,
+    "fields": { "title": "iPhones", "photo": "categories/img.png" }
+  },
+  {
+    "model": "apps.category",
+    "pk": 3,
+    "fields": { "title": "AirPods", "photo": "categories/img_3.png" }
+  },
+  {
+    "model": "apps.category",
+    "pk": 4,
+    "fields": { "title": "Watches", "photo": "categories/img_2.png" }
+  },
+  {
+    "model": "apps.category",
+    "pk": 5,
+    "fields": { "title": "Accessories", "photo": "categories/img_4.png" }
+  },
+  {
+    "model": "apps.product",
+    "pk": 1,
+    "fields": {
+      "category": 1,
+      "title": "MacBook Air 13\" M3",
+      "description": "Apple M3 chip, 8GB RAM, 256GB SSD, 13.6-inch Liquid Retina display",
+      "price": "1099",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 2,
+    "fields": {
+      "category": 1,
+      "title": "MacBook Air 15\" M3",
+      "description": "Apple M3 chip, 8GB RAM, 256GB SSD, 15.3-inch Liquid Retina display",
+      "price": "1299",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_1.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 3,
+    "fields": {
+      "category": 1,
+      "title": "MacBook Pro 14\" M4",
+      "description": "Apple M4 chip, 16GB RAM, 512GB SSD, 14.2-inch Liquid Retina XDR display",
+      "price": "1599",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_2.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 4,
+    "fields": {
+      "category": 1,
+      "title": "MacBook Pro 16\" M4 Pro",
+      "description": "Apple M4 Pro chip, 24GB RAM, 512GB SSD, 16.2-inch Liquid Retina XDR display",
+      "price": "2499",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_3.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 5,
+    "fields": {
+      "category": 1,
+      "title": "iMac 24\" M4",
+      "description": "Apple M4 chip, 16GB RAM, 256GB SSD, 24-inch 4.5K Retina display",
+      "price": "1299",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_4.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 6,
+    "fields": {
+      "category": 1,
+      "title": "Mac Mini M4",
+      "description": "Apple M4 chip, 16GB RAM, 256GB SSD, compact desktop",
+      "price": "599",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_5.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 7,
+    "fields": {
+      "category": 2,
+      "title": "iPhone 16",
+      "description": "A18 chip, 6.1-inch Super Retina XDR, 128GB, Dual camera system",
+      "price": "799",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_6.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 8,
+    "fields": {
+      "category": 2,
+      "title": "iPhone 16 Plus",
+      "description": "A18 chip, 6.7-inch Super Retina XDR, 128GB, Dual camera system",
+      "price": "899",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_7.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 9,
+    "fields": {
+      "category": 2,
+      "title": "iPhone 16 Pro",
+      "description": "A18 Pro chip, 6.3-inch Super Retina XDR, 128GB, Pro camera system with 5x zoom",
+      "price": "999",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_8.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 10,
+    "fields": {
+      "category": 2,
+      "title": "iPhone 16 Pro Max",
+      "description": "A18 Pro chip, 6.9-inch Super Retina XDR, 256GB, Pro camera system with 5x zoom",
+      "price": "1199",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_9.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 12,
+    "fields": {
+      "category": 3,
+      "title": "AirPods 4",
+      "description": "H2 chip, Active Noise Cancellation, Transparency mode, USB-C charging",
+      "price": "129",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_10.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 13,
+    "fields": {
+      "category": 3,
+      "title": "AirPods Pro 2",
+      "description": "H2 chip, Adaptive Audio, Active Noise Cancellation, Personalized Spatial Audio",
+      "price": "249",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_11.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 14,
+    "fields": {
+      "category": 3,
+      "title": "AirPods Max",
+      "description": "H1 chip, Over-ear design, Active Noise Cancellation, Spatial Audio, USB-C",
+      "price": "549",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_12.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 15,
+    "fields": {
+      "category": 4,
+      "title": "Apple Watch Series 10",
+      "description": "S10 chip, 46mm Always-On Retina display, ECG, Blood Oxygen, GPS",
+      "price": "399",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_13.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 16,
+    "fields": {
+      "category": 4,
+      "title": "Apple Watch Ultra 2",
+      "description": "S9 chip, 49mm Titanium case, Precision GPS, up to 60h battery, Action button",
+      "price": "799",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_14.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 17,
+    "fields": {
+      "category": 4,
+      "title": "Apple Watch SE (3rd gen)",
+      "description": "S8 chip, 40mm Retina display, Crash Detection, GPS, affordable option",
+      "price": "249",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_15.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 18,
+    "fields": {
+      "category": 5,
+      "title": "MagSafe Charger",
+      "description": "15W wireless charging for iPhone 12 and later, USB-C connector",
+      "price": "39",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_16.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 19,
+    "fields": {
+      "category": 5,
+      "title": "Apple 20W USB-C Power Adapter",
+      "description": "Fast charging adapter for iPhone, iPad and AirPods",
+      "price": "19",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_17.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 20,
+    "fields": {
+      "category": 5,
+      "title": "Apple Magic Keyboard",
+      "description": "Wireless Bluetooth keyboard, USB-C charging, compatible with Mac and iPad",
+      "price": "99",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_18.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 21,
+    "fields": {
+      "category": 5,
+      "title": "Apple Magic Mouse",
+      "description": "Multi-Touch surface, wireless Bluetooth, USB-C charging",
+      "price": "79",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_19.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 22,
+    "fields": {
+      "category": 5,
+      "title": "Apple AirTag",
+      "description": "Precision Finding with Ultra Wideband, IP67 water resistant, replaceable battery",
+      "price": "29",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_20.png"
+    }
+  },
+  {
+    "model": "apps.product",
+    "pk": 23,
+    "fields": {
+      "category": 5,
+      "title": "iPad Smart Folio",
+      "description": "Slim protective case for iPad Pro and iPad Air, multiple viewing angles",
+      "price": "79",
+      "discount": 0,
+      "quantity": 10,
+      "thumbnail_photo": "products/img_21.png"
+    }
+  }
+]
