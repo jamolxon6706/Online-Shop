@@ -10,6 +10,7 @@ from apps.admin_api import (
     AdminColorVariantCreateAPIView, AdminColorPhotoUploadAPIView,
     AdminStorageOptionCreateAPIView,
     AdminOrderListAPIView,
+    AdminCustomerListAPIView,
 )
 
 urlpatterns = [
@@ -27,6 +28,7 @@ urlpatterns = [
     path('api/admin/colors/<int:pk>/photos/', AdminColorPhotoUploadAPIView.as_view()),
     path('api/admin/products/<int:pk>/storage/', AdminStorageOptionCreateAPIView.as_view()),
     path('api/admin/orders/', AdminOrderListAPIView.as_view()),
+    path('api/admin/customers/', AdminCustomerListAPIView.as_view()),
 
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

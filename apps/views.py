@@ -15,12 +15,25 @@ from apps.serializers import ProductListSerializer, ProductDetailSerializer, Cat
     ProfileSerializer
 from apps.send_message import send_email
 
-redis_client = Redis(
-    host=os.getenv('REDIS_HOST', 'localhost'),
-    port=int(os.getenv('REDIS_PORT', 6379)),
-    password=os.getenv('REDIS_PASSWORD') or None,
-    decode_responses=True,
-)
+try:
+    redis_client = Redis(
+        host=os.getenv('REDIS_HOST', 'localhost'),
+        port=int(os.getenv('REDIS_PORT', 6379)),
+        password=os.getenv('REDIS_PASSWORD') or None,
+        decode_responses=True,
+    )
+    redis_client.ping()
+except Exception:
+    redis_client = None
+
+
+def _redis(method, *args, **kwargs):
+    if redis_client is None:
+        return None
+    try:
+        return getattr(redis_client, method)(*args, **kwargs)
+    except Exception:
+        return None
 
 
 
@@ -47,7 +60,7 @@ class VerifyEmailAPIView(APIView):
         code = str(randint(10 ** 5, 10 ** 6))
         send_email(email, code)
 
-        redis_client.set(f"{email}_code", code, ex=60)
+        _redis('set', f"{email}_code", code, ex=60)
 
         return Response(
             {'message': 'Tasdiqlash kodi emailga yuborildi!'},
@@ -91,7 +104,7 @@ class ForgotPasswordAPIView(APIView):
         code = str(randint(10 ** 5, 10 ** 6))
         send_email(email, code)
 
-        redis_client.set(f"{email}_reset_code", code, ex=120)
+        _redis('set', f"{email}_reset_code", code, ex=120)
 
         return Response(
             {'message': 'Tasdiqlash kodi emailga yuborildi!'},
@@ -113,8 +126,8 @@ class ForgotPasswordVerifyAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         email = serializer.validated_data['email']
-        redis_client.delete(f"{email}_reset_code")
-        redis_client.set(f"{email}_verified", "1", ex=300)
+        _redis('delete', f"{email}_reset_code")
+        _redis('set', f"{email}_verified", "1", ex=300)
 
         return Response(
             {'message': "Kod tasdiqlandi! Yangi parol o'rnating."},
@@ -149,7 +162,7 @@ class ResetPasswordAPIView(APIView):
         user.set_password(new_password)
         user.save()
 
-        redis_client.delete(f"{email}_verified")
+        _redis('delete', f"{email}_verified")
 
         return Response(
             {'message': "Parol muvaffaqiyatli o'zgartirildi!"},

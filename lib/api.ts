@@ -438,6 +438,28 @@ export async function removeFromWishlistApi(product_id: number): Promise<{ ok: b
 
 // ─── Admin API ────────────────────────────────────────────
 
+export interface ApiCustomer {
+  id: number
+  name: string
+  email: string
+  phone: string
+  orders_count: number
+  total_spent: string
+  date_joined: string
+  is_active: boolean
+}
+
+export async function adminGetCustomers(): Promise<ApiCustomer[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/admin/customers/`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) return []
+    return await res.json()
+  } catch { return [] }
+}
+
+
 export async function adminGetOrders(): Promise<ApiOrder[]> {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/orders/`, {

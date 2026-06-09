@@ -199,6 +199,45 @@ class AdminStorageOptionCreateAPIView(APIView):
         return Response(StorageOptionSerializer(option).data, status=status.HTTP_201_CREATED)
 
 
+# ─── Admin Customers ──────────────────────────────────────
+
+@extend_schema(tags=['Admin'])
+class AdminCustomerListAPIView(APIView):
+    permission_classes = (IsAdminUser,)
+
+    @extend_schema(summary="Foydalanuvchilar ro'yxati (admin)")
+    def get(self, request):
+        from django.db.models import Count, Sum, F, ExpressionWrapper
+        from django.db.models import DecimalField as DField
+        users = (
+            User.objects
+            .annotate(
+                orders_count=Count('orders'),
+                total_spent=Sum(
+                    ExpressionWrapper(
+                        F('orders__product__price') * F('orders__quantity'),
+                        output_field=DField(max_digits=14, decimal_places=0),
+                    )
+                ),
+            )
+            .order_by('-date_joined')
+        )
+        data = [
+            {
+                'id': u.id,
+                'name': f"{u.first_name} {u.last_name}".strip() or u.email or '',
+                'email': u.email or '',
+                'phone': u.phone_number or '',
+                'orders_count': u.orders_count,
+                'total_spent': str(u.total_spent or 0),
+                'date_joined': u.date_joined.date().isoformat() if u.date_joined else '',
+                'is_active': u.is_active,
+            }
+            for u in users
+        ]
+        return Response(data)
+
+
 # ─── Admin Orders ─────────────────────────────────────────
 
 @extend_schema(tags=['Admin'])

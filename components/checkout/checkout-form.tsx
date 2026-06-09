@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { Check, CreditCard, Truck, Package, ChevronRight, CheckCircle, ShoppingBag, Mail, Phone } from "lucide-react"
+import { useState, useRef } from "react"
+import { Check, CreditCard, Truck, Package, ChevronRight, CheckCircle, ShoppingBag, Phone, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { createOrder } from "@/lib/api"
+import { createOrder, createPayment } from "@/lib/api"
 
 const steps = [
   { id: "contact", name: "Contact", icon: Package },
@@ -20,10 +20,10 @@ const deliveryMethods = [
 ]
 
 const paymentMethods = [
-  { id: "card", name: "Credit/Debit Card", icon: "💳" },
+  { id: "card", name: "Karta orqali to'lov", icon: "💳" },
+  { id: "cash", name: "Naqd / Yetkazib berishda to'lash", icon: "💵" },
   { id: "applepay", name: "Apple Pay", icon: "" },
-  { id: "paypal", name: "PayPal", icon: "🅿️" },
-  { id: "installment", name: "0% Installment", icon: "📅" },
+  { id: "installment", name: "0% Bo'lib to'lash", icon: "📅" },
 ]
 
 interface CartItem {
@@ -44,12 +44,21 @@ export function CheckoutForm({ cartItems = [], onSuccess }: CheckoutFormProps) {
   const [currentStep, setCurrentStep] = useState("contact")
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [selectedDelivery, setSelectedDelivery] = useState("standard")
-  const [selectedPayment, setSelectedPayment] = useState("card")
+  const [selectedPayment, setSelectedPayment] = useState("cash")
   const [orderComplete, setOrderComplete] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
+  const [orderId, setOrderId] = useState<number | null>(null)
 
   const [contactForm, setContactForm] = useState({ first_name: "", phone_number: "" })
+  const [cardNumber, setCardNumber] = useState("")
+  const [checkPhoto, setCheckPhoto] = useState<File | null>(null)
+  const [checkPhotoName, setCheckPhotoName] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const deliveryFee = deliveryMethods.find(d => d.id === selectedDelivery)?.price ?? 0
+  const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const totalAmount = cartTotal + deliveryFee
 
   const completeStep = (step: string) => {
     setCompletedSteps((prev) => [...new Set([...prev, step])])
@@ -64,24 +73,48 @@ export function CheckoutForm({ cartItems = [], onSuccess }: CheckoutFormProps) {
       setError("Ism va telefon raqam to'ldirilishi shart")
       return
     }
+    if (selectedPayment === "card" && cardNumber.replace(/\s/g, "").length < 16) {
+      setError("To'liq karta raqamini kiriting (16 ta raqam)")
+      return
+    }
     setError("")
     setIsProcessing(true)
-    const res = await createOrder({
+
+    const orderRes = await createOrder({
       first_name: contactForm.first_name,
       phone_number: contactForm.phone_number,
       from_cart: cartItems.length > 0,
     })
-    setIsProcessing(false)
-    if (!res.ok) {
-      setError(res.error || "Buyurtma yaratishda xatolik")
+
+    if (!orderRes.ok) {
+      setIsProcessing(false)
+      setError(orderRes.error || "Buyurtma yaratishda xatolik")
       return
     }
+
+    const firstOrder = orderRes.data?.[0]
+    if (firstOrder) setOrderId(firstOrder.id)
+
+    const rawCard = cardNumber.replace(/\s/g, "")
+    const paymentRes = await createPayment({
+      card_number: selectedPayment === "card" ? rawCard.slice(0, 16) : "0000000000000000",
+      amount: Math.round(totalAmount) || 0,
+      type: "money",
+      check_photo: selectedPayment === "card" && checkPhoto ? checkPhoto : undefined,
+    })
+
+    setIsProcessing(false)
+
+    if (!paymentRes.ok) {
+      setError(paymentRes.error || "To'lovda xatolik yuz berdi, lekin buyurtmangiz qabul qilindi")
+    }
+
     setOrderComplete(true)
     onSuccess?.()
   }
 
   if (orderComplete) {
-    const orderNumber = `APX-${Date.now().toString().slice(-8)}`
+    const orderLabel = orderId ? `#${orderId}` : `APX-${Date.now().toString().slice(-8)}`
     return (
       <div className="rounded-2xl bg-background border border-border p-8 text-center">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
@@ -91,7 +124,7 @@ export function CheckoutForm({ cartItems = [], onSuccess }: CheckoutFormProps) {
         <p className="mt-2 text-muted-foreground">Buyurtmangiz muvaffaqiyatli joylashtirildi.</p>
         <div className="mt-6 rounded-xl bg-secondary/50 p-4">
           <p className="text-sm text-muted-foreground">Buyurtma raqami</p>
-          <p className="mt-1 text-lg font-semibold">{orderNumber}</p>
+          <p className="mt-1 text-lg font-semibold">{orderLabel}</p>
         </div>
         <div className="mt-6 space-y-3 text-left">
           <div className="flex items-start gap-3 rounded-lg border border-border p-4">
@@ -248,6 +281,66 @@ export function CheckoutForm({ cartItems = [], onSuccess }: CheckoutFormProps) {
               </label>
             ))}
           </div>
+
+          {/* Card payment details */}
+          {selectedPayment === "card" && (
+            <div className="mt-6 space-y-4 rounded-xl border border-border p-4">
+              <div>
+                <label className="text-sm font-medium">Karta raqami *</label>
+                <input
+                  type="text"
+                  value={cardNumber}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, "").slice(0, 16)
+                    const formatted = raw.replace(/(.{4})/g, "$1 ").trim()
+                    setCardNumber(formatted)
+                  }}
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-4 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="0000 0000 0000 0000"
+                  maxLength={19}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">To'lov cheki rasmi (ixtiyoriy)</label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-1 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-secondary/30 px-4 py-6 hover:bg-secondary/50 transition-colors"
+                >
+                  <Upload className="h-5 w-5 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    {checkPhotoName || "Rasm yuklash uchun bosing"}
+                  </p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setCheckPhoto(file)
+                      setCheckPhotoName(file.name)
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {selectedPayment === "cash" && (
+            <div className="mt-4 rounded-xl bg-secondary/50 p-4 text-sm text-muted-foreground">
+              Kuryerga yetkazib berilganda to'lanadi. Naqd pul yoki terminal orqali to'lash mumkin.
+            </div>
+          )}
+
+          {totalAmount > 0 && (
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-secondary/50 px-4 py-3 text-sm">
+              <span className="text-muted-foreground">Jami to'lov</span>
+              <span className="font-bold text-base">${totalAmount.toLocaleString()}</span>
+            </div>
+          )}
+
           <Button
             className="mt-6 w-full rounded-xl" size="lg"
             onClick={handlePlaceOrder}
