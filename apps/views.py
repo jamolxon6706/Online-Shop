@@ -352,3 +352,101 @@ class WishlistAPIView(APIView):
             return Response(WishlistSerializer(wishlist).data)
         except Product.DoesNotExist:
             return Response({'error': 'Mahsulot topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# ─── Orders ───────────────────────────────────────────────
+from django.db import transaction as db_transaction
+from apps.models import Order, Payment
+from apps.serializers import OrderSerializer, OrderCreateSerializer, PaymentSerializer, PaymentCreateSerializer
+
+
+@extend_schema(tags=['Orders'])
+class OrderListCreateAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(responses=OrderSerializer(many=True), summary="Mening buyurtmalarim")
+    def get(self, request):
+        orders = Order.objects.filter(user=request.user).select_related('product').order_by('-created_at')
+        return Response(OrderSerializer(orders, many=True).data)
+
+    @extend_schema(request=OrderCreateSerializer, responses=OrderSerializer(many=True), summary="Buyurtma yaratish")
+    def post(self, request):
+        ser = OrderCreateSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        d = ser.validated_data
+
+        first_name = d['first_name']
+        phone_number = d['phone_number']
+        from_cart = d.get('from_cart', False)
+        created_orders = []
+
+        with db_transaction.atomic():
+            if from_cart:
+                cart, _ = Cart.objects.get_or_create(user=request.user)
+                items = cart.items.select_related('product').all()
+                if not items.exists():
+                    return Response({'error': 'Savat bo\'sh'}, status=status.HTTP_400_BAD_REQUEST)
+                for item in items:
+                    product = item.product
+                    if product.quantity < item.quantity:
+                        return Response(
+                            {'error': f"{product.title} uchun yetarli miqdor yo'q"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    product.quantity -= item.quantity
+                    product.save(update_fields=['quantity'])
+                    order = Order.objects.create(
+                        product=product, user=request.user,
+                        first_name=first_name, phone_number=phone_number,
+                        quantity=item.quantity,
+                        has_discount=product.discount > 0,
+                    )
+                    created_orders.append(order)
+                cart.items.all().delete()
+            else:
+                product_id = d.get('product_id')
+                quantity = d.get('quantity', 1)
+                if not product_id:
+                    return Response({'error': 'product_id yoki from_cart talab qilinadi'}, status=status.HTTP_400_BAD_REQUEST)
+                try:
+                    product = Product.objects.get(pk=product_id)
+                except Product.DoesNotExist:
+                    return Response({'error': 'Mahsulot topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+                if product.quantity < quantity:
+                    return Response({'error': 'Yetarli miqdor yo\'q'}, status=status.HTTP_400_BAD_REQUEST)
+                product.quantity -= quantity
+                product.save(update_fields=['quantity'])
+                order = Order.objects.create(
+                    product=product, user=request.user,
+                    first_name=first_name, phone_number=phone_number,
+                    quantity=quantity, has_discount=product.discount > 0,
+                )
+                created_orders.append(order)
+
+        return Response(OrderSerializer(created_orders, many=True).data, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(tags=['Orders'])
+class OrderDetailAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(responses=OrderSerializer, summary="Buyurtma ma'lumoti")
+    def get(self, request, pk):
+        try:
+            order = Order.objects.select_related('product').get(pk=pk, user=request.user)
+        except Order.DoesNotExist:
+            return Response({'error': 'Topilmadi'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(OrderSerializer(order).data)
+
+
+# ─── Payments ─────────────────────────────────────────────
+@extend_schema(tags=['Payments'])
+class PaymentCreateAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(request=PaymentCreateSerializer, responses=PaymentSerializer, summary="To'lov yaratish")
+    def post(self, request):
+        ser = PaymentCreateSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        payment = ser.save(user=request.user)
+        return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)

@@ -14,11 +14,12 @@ staticfiles/
 # Next.js
 .next/
 node_modules/
-templates/.next/
-templates/node_modules/
-templates/.env.local
 *.tsbuildinfo
 next_dbg.log
+
+# Env (local overrides)
+.env.local
+.env.*.local
 
 # Large / generated files
 templates.zip

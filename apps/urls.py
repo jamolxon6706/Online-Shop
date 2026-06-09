@@ -7,8 +7,10 @@ from .views import (
     ForgotPasswordAPIView, ForgotPasswordVerifyAPIView, ResetPasswordAPIView,
     ProductListAPIView, ProductDetailAPIView, ProductSearchAPIView,
     CategoryListAPIView, CategoryProductListAPIView,
-    ProfileAPIView, ChangePasswordAPIView, CartAPIView, CartItemAPIView, WishlistAPIView
+    ProfileAPIView, ChangePasswordAPIView, CartAPIView, CartItemAPIView, WishlistAPIView,
+    OrderListCreateAPIView, OrderDetailAPIView, PaymentCreateAPIView,
 )
+from apps.firebase_auth import FirebaseLoginAPIView
 
 urlpatterns = [
     # ─── Auth ──────────────────────────────────────────────────────
@@ -18,6 +20,7 @@ urlpatterns = [
     path('auth/forgot-password/', ForgotPasswordAPIView.as_view()),
     path('auth/forgot-password-verify/', ForgotPasswordVerifyAPIView.as_view()),
     path('auth/reset-password/', ResetPasswordAPIView.as_view()),
+    path('auth/firebase-login/', FirebaseLoginAPIView.as_view()),
 
 
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
@@ -42,7 +45,9 @@ urlpatterns = [
 
 #     wishlist
     path('wishlist/', WishlistAPIView.as_view()),
-# order
-#     payments
-#
+
+    # ─── Orders & Payments ─────────────────────────────────
+    path('orders/', OrderListCreateAPIView.as_view()),
+    path('orders/<int:pk>/', OrderDetailAPIView.as_view()),
+    path('payments/', PaymentCreateAPIView.as_view()),
 ]

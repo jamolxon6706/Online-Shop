@@ -438,6 +438,16 @@ export async function removeFromWishlistApi(product_id: number): Promise<{ ok: b
 
 // ─── Admin API ────────────────────────────────────────────
 
+export async function adminGetOrders(): Promise<ApiOrder[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/admin/orders/`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) return []
+    return await res.json()
+  } catch { return [] }
+}
+
 export async function adminGetStats() {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/stats/`, {
@@ -530,6 +540,83 @@ export async function adminAddStorageOption(
     })
     if (!res.ok) { const d = await res.json(); return { ok: false, error: JSON.stringify(d) } }
     return { ok: true }
+  } catch { return { ok: false, error: "Server bilan aloqa yo'q" } }
+}
+
+// ─── Orders API ───────────────────────────────────────────
+
+export interface ApiOrder {
+  id: number
+  product: ApiProduct & { price: string }
+  first_name: string
+  phone_number: string
+  quantity: number
+  has_discount: boolean
+  status: string
+  status_display: string
+  created_at: string
+  updated_at: string
+}
+
+export async function createOrder(payload: {
+  first_name: string
+  phone_number: string
+  from_cart?: boolean
+  product_id?: number
+  quantity?: number
+}): Promise<{ ok: boolean; data?: ApiOrder[]; error?: string }> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/orders/`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json()
+    if (!res.ok) return { ok: false, error: data?.error || JSON.stringify(data) }
+    return { ok: true, data }
+  } catch { return { ok: false, error: "Server bilan aloqa yo'q" } }
+}
+
+export async function getMyOrders(): Promise<ApiOrder[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/orders/`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) return []
+    return await res.json()
+  } catch { return [] }
+}
+
+export async function getOrderById(id: number): Promise<ApiOrder | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/orders/${id}/`, {
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch { return null }
+}
+
+export async function createPayment(payload: {
+  card_number: string
+  amount: number
+  type?: string
+  check_photo?: File
+}): Promise<{ ok: boolean; data?: unknown; error?: string }> {
+  try {
+    const formData = new FormData()
+    formData.append('card_number', payload.card_number)
+    formData.append('amount', String(payload.amount))
+    if (payload.type) formData.append('type', payload.type)
+    if (payload.check_photo) formData.append('check_photo', payload.check_photo)
+    const res = await fetch(`${BASE_URL}/api/payments/`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    })
+    const data = await res.json()
+    if (!res.ok) return { ok: false, error: data?.error || JSON.stringify(data) }
+    return { ok: true, data }
   } catch { return { ok: false, error: "Server bilan aloqa yo'q" } }
 }
 

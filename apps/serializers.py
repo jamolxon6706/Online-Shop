@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 import os
 from redis import Redis
 from rest_framework.exceptions import ValidationError
-from apps.models import User, Category, Product, ProductPhoto
+from apps.models import User, Category, Product, ProductPhoto, ColorVariant, ColorVariantPhoto, StorageOption
 
 
 def _get_redis():
@@ -110,12 +110,32 @@ class ProductPhotoSerializer(serializers.ModelSerializer):
         fields = ('id', 'photo')
 
 
+class ColorVariantPhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ColorVariantPhoto
+        fields = ('id', 'photo', 'order')
+
+
+class ColorVariantSerializer(serializers.ModelSerializer):
+    photos = ColorVariantPhotoSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ColorVariant
+        fields = ('id', 'name', 'hex_code', 'photos', 'order')
+
+
+class StorageOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StorageOption
+        fields = ('id', 'label', 'storage', 'ram', 'price', 'order')
+
+
 class ProductListSerializer(serializers.ModelSerializer):
     thumbnail_photo = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ('id', 'title', 'price', 'discount', 'thumbnail_photo', 'quantity')
+        fields = ('id', 'title', 'slug', 'price', 'discount', 'thumbnail_photo', 'quantity', 'is_active')
 
     def get_thumbnail_photo(self, obj):
         if not obj.thumbnail_photo:
@@ -128,11 +148,17 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     photos = ProductPhotoSerializer(many=True, read_only=True)
+    color_variants = ColorVariantSerializer(many=True, read_only=True)
+    storage_options = StorageOptionSerializer(many=True, read_only=True)
     category = serializers.StringRelatedField()
 
     class Meta:
         model = Product
-        fields = ('id', 'title', 'price', 'discount', 'description', 'category', 'quantity', 'thumbnail_photo', 'photos', 'created_at')
+        fields = (
+            'id', 'title', 'slug', 'price', 'discount', 'description',
+            'category', 'quantity', 'thumbnail_photo', 'photos',
+            'color_variants', 'storage_options', 'is_active', 'created_at',
+        )
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -263,3 +289,47 @@ class WishlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wishlist
         fields = ('id', 'products')
+
+
+# ─── Orders & Payments ────────────────────────────────────
+from apps.models import Order, Payment
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    product = ProductListSerializer(read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = Order
+        fields = (
+            'id', 'product', 'first_name', 'phone_number',
+            'quantity', 'has_discount', 'status', 'status_display',
+            'created_at', 'updated_at',
+        )
+
+
+class OrderCreateSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=200)
+    phone_number = serializers.CharField(max_length=20)
+    product_id = serializers.IntegerField(required=False)
+    quantity = serializers.IntegerField(min_value=1, default=1, required=False)
+    from_cart = serializers.BooleanField(default=False, required=False)
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = Payment
+        fields = (
+            'id', 'card_number', 'amount', 'status', 'status_display',
+            'check_photo', 'type', 'type_display', 'created_at',
+        )
+
+
+class PaymentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ('card_number', 'amount', 'type', 'check_photo')
+        extra_kwargs = {'check_photo': {'required': False}}
